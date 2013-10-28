@@ -1,20 +1,19 @@
 /*
-* LM35 sensor based thermometer with multifunction LCD display
-* with two display modes: a lot of stuff and a cool simple 15 to 30 celsius bar graph
-* Feel free to use as you wish, if you wish
-* Author: Niko Salakka, 2013
-*/
+ * LM35 sensor based thermometer with multifunction LCD display
+ * with two display modes: a lot of stuff and a cool simple 15 to 30 celsius bar graph
+ * Feel free to use as you wish, if you wish
+ * Author: Niko Salakka, 2013
+ */
 
 #include <LiquidCrystal.h>
-LiquidCrystal lcd(12, 11, 5, 4, 3, 2);
-const int sensorPin = A0;
 
-int switchState = 0;
-int prevState = 0;
+LiquidCrystal lcd(12, 11, 7, 6, 5, 4);
+const int sensorPin = A0;
+const int btnPin = 2;
 
 int screenMode = 0;
 long time = 0;
-long debounce = 200;
+const long debounce = 250; //in ms
 
 int sensorVal = 0;
 float voltage = 0;
@@ -29,9 +28,12 @@ byte br[8] = {0x1f,0x1,0x1,0x1,0x1,0x1,0x1,0x1f};
 void setup(){
     lcd.begin(16, 2);
     Serial.begin(9600);
-    pinMode(6, INPUT); //display mode button
 
-    for(int pinNumber = 2; pinNumber < 5; pinNumber++){
+    pinMode(btnPin, INPUT); //display mode button
+    attachInterrupt(0, dispMode, RISING);
+
+
+    for(int pinNumber = 4; pinNumber < 7; pinNumber++){
         pinMode(pinNumber, OUTPUT);
         digitalWrite(pinNumber, LOW);
     }
@@ -41,20 +43,6 @@ void setup(){
 }
 
 void loop(){
-
-    //handle the display mode button
-    switchState = digitalRead(6);
-    if(switchState == 1 && prevState == 0 && millis() - time > debounce){
-        if(screenMode == 0){
-            screenMode = 1;
-        }
-        else{
-            screenMode = 0;
-        }
-        time = millis();
-    }
-    prevState = switchState;
-
     //refresh the sensor data
     sensorVal = analogRead(sensorPin);
     voltage = (sensorVal / 1024.0) * 5.0;
@@ -69,6 +57,19 @@ void loop(){
         analogTemp();
     }
     delay(1000);
+}
+
+void dispMode(){
+    if(millis () - time > debounce){
+        Serial.println("click");
+        if(screenMode == 0){
+            screenMode = 1;
+        }
+        else{
+            screenMode = 0;
+        }
+        time = millis();
+    }
 }
 
 void digiTemp(){
