@@ -1,28 +1,48 @@
 /*
- * LM35 sensor based thermometer with multifunction LCD display
- * with two display modes: sensor values & graphical display
- * Feel free to use as you wish, if you wish
- * Author: Niko Salakka, 2013
- */
+	Lcd Themometer
+
+	LM35 temperature sensor based thermometer with multifunction LCD display
+    with two display modes: sensor values & graphical display.
+
+	The circuit:
+	    In: A0: LM35 sensor
+             2: button for switching between display modes
+
+        Out: 4: LCD D7
+             5: LCD D6
+             6: LCD D5
+             7: LCD D4
+            11: LCD E
+            12: LCD RS
+
+	Created 25/10/2013
+	By Niko Salakka
+    Modified 28/10/2013
+    By Niko Salakka
+
+	https://github.com/anobi/arduino
+*/
 
 #include <LiquidCrystal.h>
 
+//inputs & outputs
 LiquidCrystal lcd(12, 11, 7, 6, 5, 4);
 const int sensorPin = A0;
 
+//display mode variables
 int screenMode = 0;
 long time = 0;
 const long debounce = 250;
 
+//sensor variables
 int sensorVal = 0;
 float voltage = 0;
 float temperature = 0;
 
-//special characters 
-//bt = border top & br = border right
-byte celsius[8] = {0x4,0xa,0x4,0x0,0x0,0x0,0x0};
-byte bt[8] = {0x1f,0x0,0x0,0x0,0x0,0x0,0x0,0x1f};
-byte br[8] = {0x1f,0x1,0x1,0x1,0x1,0x1,0x1,0x1f};
+//special characters for graphical display mode
+byte celsius[8] = {0x4,0xa,0x4,0x0,0x0,0x0,0x0}; //celsius sign
+byte bt[8] = {0x1f,0x0,0x0,0x0,0x0,0x0,0x0,0x1f}; //top and bottom border
+byte br[8] = {0x1f,0x1,0x1,0x1,0x1,0x1,0x1,0x1f}; //right border
 
 void setup(){
     lcd.begin(16, 2);
@@ -42,12 +62,12 @@ void setup(){
 }
 
 void loop(){
-    //refresh the sensor data
+    //refresh the sensor variables
     sensorVal = analogRead(sensorPin);
     voltage = (sensorVal / 1024.0) * 5.0;
     temperature = (voltage - .5) * 100;
 
-    //draw the screen
+    //draw the screen with the selected display mode
     lcd.clear();
     if(screenMode == 0){
         digiTemp();
@@ -58,6 +78,7 @@ void loop(){
     delay(1000);
 }
 
+//display mode switching function
 void dispMode(){
     if(millis () - time > debounce){
         Serial.println("click");
@@ -71,12 +92,13 @@ void dispMode(){
     }
 }
 
+//sensor value display
 void digiTemp(){
     //draw header on lcd
     lcd.setCursor(0, 0);
     lcd.print("Sensor Volt Temp");
 
-    //draw data
+    //draw values
     lcd.setCursor(0, 1);
     lcd.print(sensorVal);
 
@@ -87,6 +109,7 @@ void digiTemp(){
     lcd.print(temperature);
 }
 
+//graphical display
 void analogTemp(){
     //write the digital temperature on display
     lcd.setCursor(5, 0);
