@@ -1,6 +1,6 @@
 /*
  * LM35 sensor based thermometer with multifunction LCD display
- * with two display modes: a lot of stuff and a cool simple 15 to 30 celsius bar graph
+ * with two display modes: sensor values & graphical display
  * Feel free to use as you wish, if you wish
  * Author: Niko Salakka, 2013
  */
@@ -9,11 +9,10 @@
 
 LiquidCrystal lcd(12, 11, 7, 6, 5, 4);
 const int sensorPin = A0;
-const int btnPin = 2;
 
 int screenMode = 0;
 long time = 0;
-const long debounce = 250; //in ms
+const long debounce = 250;
 
 int sensorVal = 0;
 float voltage = 0;
@@ -28,15 +27,15 @@ byte br[8] = {0x1f,0x1,0x1,0x1,0x1,0x1,0x1,0x1f};
 void setup(){
     lcd.begin(16, 2);
     Serial.begin(9600);
-
-    pinMode(btnPin, INPUT); //display mode button
     attachInterrupt(0, dispMode, RISING);
 
-
+    //init display outputs
     for(int pinNumber = 4; pinNumber < 7; pinNumber++){
         pinMode(pinNumber, OUTPUT);
         digitalWrite(pinNumber, LOW);
     }
+
+    //create special characters
     lcd.createChar(0, celsius);
     lcd.createChar(1, bt);
     lcd.createChar(2, br);
@@ -73,7 +72,6 @@ void dispMode(){
 }
 
 void digiTemp(){
-
     //draw header on lcd
     lcd.setCursor(0, 0);
     lcd.print("Sensor Volt Temp");
@@ -90,7 +88,6 @@ void digiTemp(){
 }
 
 void analogTemp(){
-
     //write the digital temperature on display
     lcd.setCursor(5, 0);
     lcd.print(temperature);
