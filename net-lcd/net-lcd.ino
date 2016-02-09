@@ -5,15 +5,13 @@
     with two display modes: sensor values & graphical display.
 
 	The circuit:
-        AREF: 3.3v
-
 	    In: A0: LM35 sensor
              2: button for switching between display modes
 
-        Out: 4: LCD D7
-             5: LCD D6
-             6: LCD D5
-             7: LCD D4
+        Out: 5: LCD D7
+             6: LCD D6
+             7: LCD D5
+             8: LCD D4
             11: LCD E
             12: LCD RS
 
@@ -28,35 +26,19 @@
 #include <LiquidCrystal.h>
 
 //inputs & outputs
-LiquidCrystal lcd(12, 11, 7, 6, 5, 4);
-const int sensorPin = A0;
+LiquidCrystal lcd(12, 11, 8, 7, 6, 5);
 
 //display mode variables
 int screenMode = 0;
 long time = 0;
-const long debounce = 250;
-
-//sensor variables
-int sensorVal = 0;
-float voltage = 0;
-float temperature = 0;
-
-//timer variables
-long timer = 0;
-const long sampleTime = 60000; //one minute
-long value;
-int samples;
 
 //special characters for graphical display mode
-byte celsius[8] = {0x4,0xa,0x4,0x0,0x0,0x0,0x0}; //celsius sign
 byte bt[8] = {0x1f,0x0,0x0,0x0,0x0,0x0,0x0,0x1f}; //top and bottom border
 byte br[8] = {0x1f,0x1,0x1,0x1,0x1,0x1,0x1,0x1f}; //right border
 
 void setup(){
-    analogReference(EXTERNAL);
     lcd.begin(16, 2);
     Serial.begin(9600);
-    attachInterrupt(0, dispMode, RISING);
 
     //init display outputs
     for(int pinNumber = 4; pinNumber < 7; pinNumber++){
@@ -65,25 +47,14 @@ void setup(){
     }
 
     //create special characters
-    lcd.createChar(0, celsius);
     lcd.createChar(1, bt);
     lcd.createChar(2, br);
 }
 
 void loop(){
-    //refresh the sensor variables
-    sensorVal = analogRead(sensorPin);
-    voltage = (sensorVal / 1024.0) * 3.30;
-    temperature = (voltage - .5) * 100;
-
     //draw the screen with the selected display mode
     lcd.clear();
-    if(screenMode == 0){
-        digiTemp();
-    }
-    else if(screenMode == 1){
-        analogTemp();
-    }
+	draw_screen();
     delay(1000);
 }
 
@@ -101,11 +72,11 @@ void dispMode(){
     }
 }
 
-//sensor value display
-void digiTemp(){
+//draw display
+void print_message(char[]* message){
     //draw header on lcd
     lcd.setCursor(0, 0);
-    lcd.print("Sensor Volt Temp");
+    lcd.print(message);
 
     //draw values
     lcd.setCursor(0, 1);
